@@ -1,0 +1,48 @@
+#!/bin/bash
+# OATH OTP CLI helper
+
+DIR="${HOME}/.2fa"
+CREDS="${DIR}/creds.conf"
+
+# Load credentials if file exists
+[ -f "${CREDS}" ] && . ${CREDS}
+
+SERVICE=$1
+if [ $# -eq 1 ]; then
+# Generate OTP
+  SECRETFILE="${DIR}/${SERVICE}.secret"
+  if [ -f ${SECRETFILE} ]; then
+    SECRET=$(gpg -q -u ${KEYID} -r ${EMAIL} --decrypt ${SECRETFILE})
+    oathtool --base32 --totp ${SECRET} | xclip -selection c
+    echo "Code is copied to clipboard"
+  else
+    echo "Secret not found for ${SERVICE}"
+  fi
+elif [ $# -eq 2 ]; then
+# Set OTP secret
+  shift
+  SECRET=$(echo $@|tr -d " ")
+  mkdir -p ${DIR}
+  echo ${SECRET} | gpg -a -o "${DIR}/${SERVICE}.secret" -u ${KEYID} -r ${EMAIL} --encrypt -
+  echo "Secret set up for ${SERVICE}"
+else
+  cat << HELP
+$(basename $0) - OATH OTP CLI helper.
+
+Usage:
+$(basename $0) <service>          - generate OTP for sevice.
+$(basename $0) <service> <secret> - remember secret for service.
+
+It encrypts secrets with GPG, so you need to generate GPG key and provide email and key ID.
+You need also install gpg and oathtool.
+
+Files:
+${DIR}/*.secret   - secret storage
+${CREDS} - credentials storage
+
+Credentials storage format:
+EMAIL=<email>
+KEYID=<GPG key ID>
+
+HELP
+fi
