@@ -17,6 +17,7 @@ if [ $# -eq 1 ]; then
     echo "Code is copied to clipboard"
   else
     echo "Secret not found for ${SERVICE}"
+    exit 1
   fi
 elif [ $# -eq 2 ]; then
 # Set OTP secret

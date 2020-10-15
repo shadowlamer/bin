@@ -1,8 +1,11 @@
 #!/bin/bash
 # Shares my Internet connection for devices connected to Ethernet port
+
+IFACE=${1:-ppp0}
+
 sudo iptables -t nat -F POSTROUTING
 sudo iptables -F INPUT
 sudo iptables -F FORWARD
 sudo iptables -I INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -I FORWARD  -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -t nat -I POSTROUTING -o ppp0 -j MASQUERADE
+sudo iptables -t nat -I POSTROUTING -o ${IFACE} -j MASQUERADE
